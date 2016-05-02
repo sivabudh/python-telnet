@@ -68,3 +68,6 @@ comm = HuaweiCommunicator()
 comm.connect("192.168.1.1")
 comm.sendx("screen-length 0 temporary")
 comm.sendx("display current-configuration")
+
+for command in commands:
+    comm.sendx(command)
