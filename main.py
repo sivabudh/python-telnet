@@ -32,42 +32,36 @@ class HuaweiCommunicator:
         self.find("Password:")
         self.send_without_read("test_18b")
 
-        self.find("<")
-
     def find(self, expected):
         output = self.connection.read_until(bytes(expected, encoding="ascii"))
-        print("find: ", output.decode("ascii"))
+        print(output.decode("ascii"), end="")
         return output
 
     def send_without_read(self, command: str):
         command_to_send = command + "\n"
-        print("sending: ", command)
         self.connection.write(bytes(command_to_send, encoding="ascii"))
 
     def send(self, command: str) -> str:
         command_to_send = command + "\n"
-        print("sending: ", command)
+        print(command)
         self.connection.write(bytes(command_to_send, encoding="ascii"))
 
         output = self.connection.read_until(bytes(PROMPT, encoding="ascii"))
-        print("recvd: ", output.decode("ascii"))
+        print(output.decode("ascii"))
         return output
 
     def sendx(self, command: str) -> str:
         command_to_send = command + "\n"
-        print("sending: ", command)
         self.connection.write(bytes(command_to_send, encoding="ascii"))
 
         regex = r'[\<|\[]{}.*?[\>|\]]'.format(REGEX_PROMPT)
         index, regex_obj, output = self.connection.expect([bytes(regex, encoding="ascii")])
-        print("recvd: ", output.decode("ascii"))
+        print(output.decode("ascii"), end="")
         return output
 
 
 comm = HuaweiCommunicator()
 comm.connect("192.168.1.1")
-comm.sendx("screen-length 0 temporary")
-comm.sendx("display current-configuration")
 
 for command in commands:
     comm.sendx(command)
