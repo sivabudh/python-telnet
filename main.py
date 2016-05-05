@@ -12,7 +12,6 @@ commands = [
     "system-view",
     "interface GigabitEthernet0/0/1",
     "display this | i traffic-policy",
-    "quit",
 ]
 
 PROMPT = '<18B-S2300>'
@@ -41,21 +40,19 @@ class HuaweiCommunicator:
         command_to_send = command + "\n"
         self.connection.write(bytes(command_to_send, encoding="ascii"))
 
-    def send(self, command: str) -> str:
+    def send(self, command: str, expected=REGEX_PROMPT) -> str:
         command_to_send = command + "\n"
-        print(command)
         self.connection.write(bytes(command_to_send, encoding="ascii"))
 
-        output = self.connection.read_until(bytes(PROMPT, encoding="ascii"))
-        print(output.decode("ascii"))
+        output = self.connection.read_until(bytes(expected, encoding="ascii"), timeout=3)
+        print(">> ", output.decode("ascii"))
         return output
 
-    def sendx(self, command: str) -> str:
+    def sendx(self, command: str, expected_regex=r'[\<|\[]{}.*?[\>|\]]'.format(REGEX_PROMPT)) -> str:
         command_to_send = command + "\n"
         self.connection.write(bytes(command_to_send, encoding="ascii"))
 
-        regex = r'[\<|\[]{}.*?[\>|\]]'.format(REGEX_PROMPT)
-        index, regex_obj, output = self.connection.expect([bytes(regex, encoding="ascii")])
+        index, regex_obj, output = self.connection.expect([bytes(expected_regex, encoding="ascii")])
         print(output.decode("ascii"), end="")
         return output
 
@@ -65,3 +62,11 @@ comm.connect("192.168.1.1")
 
 for command in commands:
     comm.sendx(command)
+
+comm.sendx("quit")
+
+"""
+Problem we are running into now:
+1) The output echoes what we typed -> need to remove this
+2) Certain commands don't need to expect such as quit
+"""
